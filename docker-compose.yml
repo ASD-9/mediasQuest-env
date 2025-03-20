@@ -1,0 +1,41 @@
+services:
+  mq-mysql:
+    image: mysql:9.2
+    container_name: mediasQuest-db
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - 3307:3306
+    volumes:
+      - mediasQuest-dbdata:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - default
+      - pma_network
+
+  cc-node:
+    image: akuan09/medias-quest:latest
+    container_name: mediasQuest-node
+    depends_on:
+      - mq-mysql
+    ports:
+      - 13000:3000
+    environment:
+      DB_HOST: ${MYSQL_HOST}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      PORT: ${NODE_PORT}
+    restart: unless-stopped
+
+volumes:
+  mediasQuest-dbdata:
+
+networks:
+  default:
+  pma_network:
+    external: true

@@ -8,8 +8,6 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-    ports:
-      - 3307:3306
     volumes:
       - mediasQuest-dbdata:/var/lib/mysql
     restart: unless-stopped
@@ -22,8 +20,6 @@ services:
     container_name: mediasQuest-node
     depends_on:
       - mq-mysql
-    ports:
-      - 13000:3000
     environment:
       DB_HOST: ${MYSQL_HOST}
       DB_USER: ${MYSQL_USER}
@@ -31,6 +27,15 @@ services:
       DB_NAME: ${MYSQL_DATABASE}
       PORT: ${NODE_PORT}
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mq-node.rule=Host(`mq-api.asd9.fun`)"
+      - "traefik.http.routers.mq-node.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mq-node.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik_network"
+    networks:
+      - default
+      - traefik_network
 
 volumes:
   mediasQuest-dbdata:
@@ -38,4 +43,6 @@ volumes:
 networks:
   default:
   pma_network:
+    external: true
+  traefik_network:
     external: true
